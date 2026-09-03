@@ -45,3 +45,42 @@ plt.ylabel('Exam Score')
 plt.title('Analytical Linear Regression')
 plt.legend()
 plt.show()
+
+def fit_gradient_descent(x, target, learning_rate=0.01, iterations=3000):
+    intercept, slope = 0.0, 0.0
+    n = len(x)
+    cost_history = []
+
+    for _ in range(iterations):
+        predictions = intercept + slope * x
+        errors = target - predictions
+        cost_history.append(np.mean(errors ** 2))
+
+        intercept_gradient = (-2 / n) * np.sum(errors)
+        slope_gradient = (-2 / n) * np.sum(x * errors)
+        intercept -= learning_rate * intercept_gradient
+        slope -= learning_rate * slope_gradient
+
+    return intercept, slope, np.array(cost_history)
+
+b0_gd, b1_gd, costs = fit_gradient_descent(X, y)
+y_pred_gd = b0_gd + b1_gd * X
+
+print(f'Gradient-descent intercept: {b0_gd:.4f}')
+print(f'Gradient-descent slope:     {b1_gd:.4f}')
+print(f'Final MSE:                  {costs[-1]:.4f}')
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
+axes[0].plot(costs, color='darkorange')
+axes[0].set_title('Convergence of Gradient Descent')
+axes[0].set_xlabel('Iteration')
+axes[0].set_ylabel('Mean Squared Error')
+
+axes[1].scatter(X, y, color='royalblue', edgecolor='black', label='Actual data')
+axes[1].plot(X, y_pred_gd, color='green', linewidth=2.5, label='Gradient-descent line')
+axes[1].set_title('Fitted Regression Line')
+axes[1].set_xlabel('Study Hours')
+axes[1].set_ylabel('Exam Score')
+axes[1].legend()
+plt.tight_layout()
+plt.show()
