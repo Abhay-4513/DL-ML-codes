@@ -84,3 +84,44 @@ axes[1].set_ylabel('Exam Score')
 axes[1].legend()
 plt.tight_layout()
 plt.show()
+
+def regression_metrics(actual, predicted):
+    residuals = actual - predicted
+    mae = np.mean(np.abs(residuals))
+    mse = np.mean(residuals ** 2)
+    rmse = np.sqrt(mse)
+    ss_res = np.sum(residuals ** 2)
+    ss_tot = np.sum((actual - np.mean(actual)) ** 2)
+    r2 = 1 - ss_res / ss_tot
+    return {'MAE': mae, 'MSE': mse, 'RMSE': rmse, 'R²': r2}
+
+results = pd.DataFrame({
+    'Analytical': regression_metrics(y, y_pred_analytical),
+    'Gradient Descent': regression_metrics(y, y_pred_gd)
+}).T
+display(results.round(4))
+
+residuals = y - y_pred_analytical
+fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
+axes[0].scatter(y_pred_analytical, residuals, color='purple', edgecolor='black')
+axes[0].axhline(0, color='red', linestyle='--')
+axes[0].set_xlabel('Predicted Score')
+axes[0].set_ylabel('Residual')
+axes[0].set_title('Residual Plot')
+
+axes[1].scatter(y, y_pred_analytical, color='teal', edgecolor='black')
+limits = [min(y.min(), y_pred_analytical.min()), max(y.max(), y_pred_analytical.max())]
+axes[1].plot(limits, limits, 'r--', label='Ideal prediction')
+axes[1].set_xlabel('Actual Score')
+axes[1].set_ylabel('Predicted Score')
+axes[1].set_title('Actual versus Predicted')
+axes[1].legend()
+plt.tight_layout()
+plt.show()
+
+def predict(x_new, intercept, slope):
+    return intercept + slope * np.asarray(x_new)
+
+new_hours = 7.5
+predicted_score = predict(new_hours, b0_analytical, b1_analytical)
+print(f'Predicted score for {new_hours} study hours: {predicted_score:.2f}')
