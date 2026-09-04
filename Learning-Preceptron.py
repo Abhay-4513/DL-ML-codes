@@ -4,7 +4,7 @@ import numpy as np
 # Small = 0 
 # Big = 1  
 X = np.array([     [1, 1],   # Small     
-              [3, 3]    # Big ])  
+              [3, 3]   ])  #big
 y = np.array([0, 1])  # Initial values 
 weights = np.zeros(X.shape[1]) 
 bias = 0 
