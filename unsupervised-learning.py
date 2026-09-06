@@ -88,3 +88,63 @@ print('Iterations used:', kmeans.n_iter_)
 print('Final inertia:', round(kmeans.inertia_, 3))
 print('Silhouette score:', round(silhouette_score(X_scaled, df['Cluster']), 3))
 display(df.head())
+
+centroids_original = scaler.inverse_transform(kmeans.cluster_centers_)
+centroids_df = pd.DataFrame(centroids_original, columns=features)
+centroids_df.index.name = 'Cluster'
+display(centroids_df.round(2))
+
+plt.figure(figsize=(9, 6))
+sns.scatterplot(
+    data=df, x=features[0], y=features[1], hue='Cluster',
+    palette='tab10', s=65, alpha=0.75
+)
+plt.scatter(
+    centroids_original[:, 0], centroids_original[:, 1],
+    c='black', marker='X', s=260, label='Centroids', edgecolors='white'
+)
+plt.title('K-Means Customer Segments')
+plt.legend(title='Cluster', bbox_to_anchor=(1.02, 1), loc='upper left')
+plt.tight_layout()
+plt.show()
+
+cluster_profile = df.groupby('Cluster').agg(
+    Customers=('Cluster', 'size'),
+    Mean_Income=(features[0], 'mean'),
+    Mean_Spending=(features[1], 'mean')
+).round(2)
+cluster_profile['Percentage'] = (100 * cluster_profile['Customers'] / len(df)).round(1)
+display(cluster_profile)
+
+income_mid = df[features[0]].median()
+spending_mid = df[features[1]].median()
+
+def describe_segment(row):
+    income = 'High-income' if row['Mean_Income'] >= income_mid else 'Lower-income'
+    spending = 'high-spending' if row['Mean_Spending'] >= spending_mid else 'low-spending'
+    return f'{income}, {spending}'
+
+cluster_profile['Suggested Segment'] = cluster_profile.apply(describe_segment, axis=1)
+display(cluster_profile[['Suggested Segment']])
+
+df['Silhouette'] = silhouette_samples(X_scaled, df['Cluster'])
+display(df.groupby('Cluster')['Silhouette'].agg(['mean', 'min', 'max']).round(3))
+
+plt.figure(figsize=(9, 4.5))
+sns.boxplot(data=df, x='Cluster', y='Silhouette', hue='Cluster', palette='tab10', legend=False)
+plt.axhline(0, color='red', linestyle='--', linewidth=1)
+plt.title('Silhouette Values by Cluster')
+plt.tight_layout()
+plt.show()
+
+new_customers = pd.DataFrame({
+    features[0]: [25, 75, 30, 70],
+    features[1]: [20, 80, 85, 25]
+})
+new_scaled = scaler.transform(new_customers)
+new_customers['Predicted Cluster'] = kmeans.predict(new_scaled)
+new_customers['Suggested Segment'] = new_customers['Predicted Cluster'].map(
+    cluster_profile['Suggested Segment']
+)
+display(new_customers)
+
